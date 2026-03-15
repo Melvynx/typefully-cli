@@ -18,64 +18,120 @@ This clones the repo, builds the CLI, links it to your PATH, and installs the Ag
 npx skills add Melvynx/typefully-cli
 ```
 
-## Usage
+## Auth
 
 ```bash
-typefully-cli auth set "your-token"
-typefully-cli auth test
-typefully-cli --help
+typefully-cli auth set <token>      # Save your API token
+typefully-cli auth show             # Display current token (masked)
+typefully-cli auth show --raw       # Display full unmasked token
+typefully-cli auth test             # Verify token with a test API call
+typefully-cli auth remove           # Delete saved token
 ```
 
 ## Resources
 
 ### me
 
-| Command | Description |
-|---------|-------------|
-| `typefully-cli me --json` | Get current authenticated user |
+```bash
+typefully-cli me                    # Get current authenticated user
+typefully-cli me --json
+```
 
 ### social-sets
 
-| Command | Description |
-|---------|-------------|
-| `typefully-cli social-sets list --json` | List all social sets (accounts) |
-| `typefully-cli social-sets get <id> --json` | Get social set details with platform accounts |
-| `typefully-cli social-sets resolve-linkedin <social-set-id> --url <url> --json` | Resolve LinkedIn company URL to mention syntax |
+```bash
+# List all social sets
+typefully-cli social-sets list
+typefully-cli social-sets list --limit 10 --offset 0 --json
+
+# Get social set details
+typefully-cli social-sets get <id>
+typefully-cli social-sets get <id> --json
+
+# Resolve LinkedIn company URL to mention syntax
+typefully-cli social-sets resolve-linkedin <social-set-id> --url "https://linkedin.com/company/typefully" --json
+```
+
+**list flags:** `--limit <n>` (max 50, default 50), `--offset <n>`, `--fields <cols>`
 
 ### drafts
 
-| Command | Description |
-|---------|-------------|
-| `typefully-cli drafts list <social-set-id> --json` | List all drafts |
-| `typefully-cli drafts list <social-set-id> --status scheduled --json` | List scheduled drafts |
-| `typefully-cli drafts get <social-set-id> <draft-id> --json` | Get a draft by ID |
-| `typefully-cli drafts create <social-set-id> --text "Hello!" --platform x,linkedin --json` | Create a draft |
-| `typefully-cli drafts create <social-set-id> --text "Now!" --publish-at now --json` | Publish immediately |
-| `typefully-cli drafts create <social-set-id> --text "Queued" --publish-at next-free-slot --json` | Schedule to next slot |
-| `typefully-cli drafts update <social-set-id> <draft-id> --text "Updated" --json` | Update draft text |
-| `typefully-cli drafts delete <social-set-id> <draft-id> --json` | Delete a draft |
+```bash
+# List drafts
+typefully-cli drafts list <social-set-id>
+typefully-cli drafts list <social-set-id> --status scheduled --json
+typefully-cli drafts list <social-set-id> --limit 5 --tags marketing
+
+# Get a draft
+typefully-cli drafts get <social-set-id> <draft-id> --json
+
+# Create a draft
+typefully-cli drafts create <social-set-id> --text "Hello world!" --platform x,linkedin
+typefully-cli drafts create <social-set-id> --text "Scheduled" --publish-at next-free-slot --json
+typefully-cli drafts create <social-set-id> --text "Now!" --publish-at now
+
+# Update a draft
+typefully-cli drafts update <social-set-id> <draft-id> --text "Updated text"
+typefully-cli drafts update <social-set-id> <draft-id> --publish-at now --json
+
+# Delete a draft
+typefully-cli drafts delete <social-set-id> <draft-id>
+```
+
+**list flags:** `--limit <n>` (max 50, default 20), `--offset <n>`, `--status <draft|scheduled|published|publishing|error>`, `--tags <slugs>`, `--fields <cols>`
+
+**create flags:** `--text <text>`, `--platform <x,linkedin,mastodon,threads,bluesky>` (default: x), `--title <title>`, `--tags <slugs>`, `--publish-at <now|next-free-slot|ISO8601>`, `--share`, `--media-ids <ids>`, `--scratchpad <text>`
+
+**update flags:** `--text <text>`, `--platform <platforms>`, `--title <title>`, `--tags <slugs>`, `--publish-at <when>`, `--share`, `--scratchpad <text>`
 
 ### media
 
-| Command | Description |
-|---------|-------------|
-| `typefully-cli media upload <social-set-id> --file-name "photo.jpg" --json` | Get presigned upload URL |
-| `typefully-cli media status <social-set-id> <media-id> --json` | Check media processing status |
+```bash
+# Get a presigned upload URL
+typefully-cli media upload <social-set-id> --file-name "photo.jpg" --json
+
+# Then upload the file
+curl -T photo.jpg "$UPLOAD_URL"
+
+# Check processing status
+typefully-cli media status <social-set-id> <media-id> --json
+```
+
+**upload flags:** `--file-name <name>`
 
 ### tags
 
-| Command | Description |
-|---------|-------------|
-| `typefully-cli tags list <social-set-id> --json` | List all tags |
-| `typefully-cli tags create <social-set-id> --name "Marketing" --json` | Create a new tag |
+```bash
+# List all tags
+typefully-cli tags list <social-set-id>
+typefully-cli tags list <social-set-id> --json
+
+# Create a tag
+typefully-cli tags create <social-set-id> --name "Marketing" --json
+```
+
+**list flags:** `--limit <n>` (max 50, default 50), `--offset <n>`, `--fields <cols>`
+
+**create flags:** `--name <name>`
 
 ### queue
 
-| Command | Description |
-|---------|-------------|
-| `typefully-cli queue view <social-set-id> --start 2026-03-01 --end 2026-03-31 --json` | View queue slots |
-| `typefully-cli queue schedule <social-set-id> --json` | Get queue schedule rules |
-| `typefully-cli queue schedule-set <social-set-id> --rules '<json>' --json` | Replace queue schedule |
+```bash
+# View queue slots for a date range
+typefully-cli queue view <social-set-id> --start 2026-03-01 --end 2026-03-31
+typefully-cli queue view <social-set-id> --start 2026-03-01 --end 2026-03-07 --json
+
+# Get schedule rules
+typefully-cli queue schedule <social-set-id> --json
+
+# Replace schedule rules
+typefully-cli queue schedule-set <social-set-id> --rules '[{"h":9,"m":0,"days":["mon","wed","fri"]}]' --json
+typefully-cli queue schedule-set <social-set-id> --rules '[]'
+```
+
+**view flags:** `--start <YYYY-MM-DD>`, `--end <YYYY-MM-DD>` (max 62 days range)
+
+**schedule-set flags:** `--rules <json>` (JSON array of schedule rules)
 
 ## Global Flags
 
